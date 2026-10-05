@@ -1,0 +1,23 @@
+# Secrets
+.env
+secrets/
+certs/
+pki/out/
+*.key
+*.pem
+*.crt
+*.csr
+*.srl
+passwd
+# Python / Node
+__pycache__/
+*.pyc
+.venv/
+node_modules/
+# Données locales
+*.db
+*.sqlite
+*.log
+# Modèles lourds (à stocker hors Git)
+*.pt
+*.onnx
