@@ -1,0 +1,8 @@
+user api
+topic read  sentinelx/+/telemetry
+topic read  sentinelx/+/status
+topic write sentinelx/+/cmd
+
+pattern write sentinelx/%u/telemetry
+pattern write sentinelx/%u/status
+pattern read  sentinelx/%u/cmd

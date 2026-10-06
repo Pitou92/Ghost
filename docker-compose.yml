@@ -1,0 +1,47 @@
+x-hardened: &hardened
+  restart: unless-stopped
+  security_opt: ["no-new-privileges:true"]
+  logging:
+    driver: json-file
+    options: { max-size: "10m", max-file: "3" }
+
+services:
+  mosquitto:
+    <<: *hardened
+    image: eclipse-mosquitto:2
+    cap_drop: ["ALL"]
+    ports:
+      - "8883:8883"            # seul port MQTT exposé (pas de 1883)
+    volumes:
+      - ./infra/mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - ./infra/mosquitto/acl:/mosquitto/config/acl:ro
+      - ./certs:/mosquitto/certs:ro          # fournis par Cyber, jamais commités
+      - mosquitto_data:/mosquitto/data
+    networks: [backend, edge]
+
+  db:
+    <<: *hardened
+    image: postgres:16-alpine
+    cap_drop: ["ALL"]
+    cap_add: [CHOWN, DAC_OVERRIDE, FOWNER, SETGID, SETUID]   # requis par l'init de Postgres
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD manquant dans .env}
+      POSTGRES_DB: sentinel
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+    networks: [backend]        # jamais exposée à l'extérieur
+
+  # --- À ajouter par les autres filières ---
+  # api:        (DEV)  build: ./api
+  # vision:     (IA)   build: ./vision, devices: ["/dev/video0:/dev/video0"]
+  # ml:         (IA)   build: ./ml
+  # proxy:      (INFRA, quand l'API existe) caddy:2 sur le port 443
+
+networks:
+  backend:
+    internal: true             # isolé du monde extérieur
+  edge: {}
+
+volumes:
+  mosquitto_data: {}
+  pg_data: {}
